@@ -10,7 +10,8 @@
 # All Articles
 
 *  **Golang**
-- [The memory leak of online golang code](https://github.com/sysvm/sysvm.github.io/blob/master/src/Golang/memory_leak_online.md)
+    * [The memory leak of online golang code](https://github.com/sysvm/sysvm.github.io/blob/master/src/Golang/memory_leak_online.md)
+    * [Two dark magic tricks of golang](https://github.com/sysvm/sysvm.github.io/blob/master/src/Golang/two_dark_magic_tricks.md)
 
 *  **OpenAPI**
 
