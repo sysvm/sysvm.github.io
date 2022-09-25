@@ -1,10 +1,10 @@
 # Online debug of Blockchain DiffLayer
 
-背景：团队里的 `Block Syncer` 程序负责将Kafka中的数据，主要是区块数据和对应的状态，写入到`remoteDB`，remoteDB采用 `kvrocks` 进行数据存储；但是在数据同步的过程中出现了区块追块错误的情况。`Block Syncer` 追块逻辑不是将某个高度的区块数据写入 `remoteDB`，只将 `diffLayer` 数据应用到MPT中完成数据的追块逻辑，因此出现追块错误也就是通过`diffLayer`计算出的 `rootHash` 与Kafka中某个区块的 `block header` 的 `rootHash` 不一致，无法通过 `Block Syncer` 完成追块逻辑。
+背景：团队里的 `Block Syncer` 程序负责将Kafka中的数据，主要是区块数据和对应的状态，写入到 `remoteDB`，remoteDB采用 `kvrocks` 进行数据存储；但是在数据同步的过程中出现了区块追块错误的情况。`Block Syncer` 追块逻辑不是将某个高度的区块数据写入 `remoteDB`，只将 `diffLayer` 数据应用到MPT中完成数据的追块逻辑，因此出现追块错误也就是通过 `diffLayer`计算出的 `rootHash` 与Kafka中某个区块的 `block header` 的 `rootHash` 不一致，无法通过 `Block Syncer` 完成追块逻辑。
 
 ## 解决措施
 
-到八月底为止一共出现过三次追块错误的情况，出错的 `blockNumber` 分别为 `20028459, 20052893, 20207802`，推测是写入到Kafka里的业务数据有问题，因此需要写一个工具将Kafka的 `diffLayer` 数据与一个`full node`节点获取的 `diffLayer` 数据做对比。
+到八月底为止一共出现过三次追块错误的情况，出错的 `blockNumber` 分别为 `20028459, 20052893, 20207802`，推测是写入到Kafka里的业务数据有问题，因此需要写一个工具将Kafka的 `diffLayer` 数据与一个 `full node`节点获取的 `diffLayer` 数据做对比。
 
 这里之所以只验证diffLayer是因为我们只用diffLayer进行追块逻辑，diffLayer数据结构如下所示：
 
@@ -48,13 +48,13 @@ type StateDiff struct {
 }
 ```
 
-由此可见diffLayer数据的核心结构分别是`Accounts, Storage, Destructs, Codes`；在验证的过程中依次使用了四种方案进行数据验证，有的方案行不通，有的方案效率较低，分别进行阐述。
+由此可见diffLayer数据的核心结构分别是 `Accounts, Storage, Destructs, Codes`；在验证的过程中依次使用了四种方案进行数据验证，有的方案行不通，有的方案效率较低，分别进行阐述。
 
 ### 方案一
 
 使用的第一个解决方案是借助于 `geth` 提供的 `JSON RPC APIs` 中的  [debug_traceBlockByNumber](https://docs.nodereal.io/nodereal/meganode/api-docs/debug-api/debug_traceblockbynumber) API，该API会重放指定的blockNumber的所有交易，将包含的中间过程打印出来。
 
-使用指定的`HTTPEndPoint`获取出错的区块的全部结果，与Kafka中的某个指定区块的全部交易进行比对，发现结果并不完全一致，而且我们的 `Block Syncer` 程序使用的是diffLayer，因此直接比对交易详情这一方案暂时搁置。
+使用指定的 `HTTPEndPoint`获取出错的区块的全部结果，与Kafka中的某个指定区块的全部交易进行比对，发现结果并不完全一致，而且我们的 `Block Syncer` 程序使用的是diffLayer，因此直接比对交易详情这一方案暂时搁置。
 
 ### 方案二
 
@@ -124,4 +124,3 @@ curl localhost:9545 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"
 ### 方案四
 
 考虑是否可以从 `debug_traceBlockByNumber` API产生的transactions数据手动生成diffLayer。
-

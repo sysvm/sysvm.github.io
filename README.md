@@ -18,3 +18,7 @@
 *  **Cloud Native**
 
 *  **Blockchain**
+  * [Online debug of Blockchain DiffLayer](https://github.com/sysvm/sysvm.github.io/blob/master/src/Blockchain/block_syncer_debug.md)
+
+* **Other**
+  * [Zapier -- Overview of the low code platform](https://github.com/sysvm/sysvm.github.io/blob/master/src/Other/zapier.md)
