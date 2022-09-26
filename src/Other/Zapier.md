@@ -26,7 +26,7 @@ Zapier是一个无代码集成平台，可以将两个或多个APP串联，自�
 一个完整的Zap如下图所示：
 
 <div align=center>
-<img src="../../images/zapier/1.png" width="400px">
+<img src="../../images/zapier/1.png" width="600px">
 </div>
 
 # 三、Zapier使用方法
