@@ -1,8 +1,8 @@
-# Zapier——无代码集成平台概述
+# Zapier: 无代码集成平台概述
 
-``导语：最近一段时间由于项目的需要，接触到了Zapier平台，负责将腾讯文档应用集成到Zapier平台上；Zapier是一个无代码集成平台进行对接，可以与世界上很多SaaS产品，同步数据和执行动作。在集成腾讯文档的过程中，逐渐深入了解了Zapier平台的作用，本篇文章整理了Zapier平台的使用方法和发布流程。``
+背景：最近一段时间由于项目的需要，接触到了Zapier平台，负责将腾讯文档应用集成到Zapier平台上；Zapier是一个无代码集成平台进行对接，可以与世界上很多SaaS产品，同步数据和执行动作。在集成腾讯文档的过程中，逐渐深入了解了Zapier平台的作用，本篇文章整理了Zapier平台的使用方法和发布流程。
 
-[toc]
+[TOC]
 
 # 一、Zapier是什么？
 
@@ -27,7 +27,7 @@ Zapier是一个无代码集成平台，可以将两个或多个APP串联，自�
 
 一个完整的Zap如下图所示：
 
-<img src="../../images/zapier/1.png" alt="2" style="zoom: 33%;" />
+![1](../../images/zapier/1.png)
 
 # 三、Zapier使用方法
 
@@ -37,7 +37,7 @@ Zapier是一个无代码集成平台，可以将两个或多个APP串联，自�
 
 Zapier平台支持集成用户所属公司的App，本节以腾讯文档为例进行介绍。制作流程分为四个模块，如下图所示：
 
-<img src="../../images/zapier/2.png" alt="3" style="zoom:50%;" />
+![2](../../images/zapier/2.png)
 
 ### 1.1 Authentication
 
@@ -45,11 +45,15 @@ Zapier平台支持集成用户所属公司的App，本节以腾讯文档为例�
 
 腾讯文档采用OAuth2.0的授权码方式进行用户身份验证、获取用户授权，因此在Zapier平台也采用了**OAuth**的认证方式，如下图所示，一共有五个步骤：
 
-<img src="../../images/zapier/3.png" alt="4" style="zoom:25%;" />
+<div style="text-align: center">
+<img src="../../images/zapier/3.png" style="zoom:30%" />
+</div>
 
 前两步可以直接跳过，第三步要首先到腾讯文档开放平台对Zapier进行注册，获得**Client ID**和**Client Secret**；第四步是填写腾讯文档授权接口API，在这里需要填写四个API：Authorization URL、Access Token Request、Refresh Token Request、Test，其流程如下图所示：
 
-<img src="../../images/zapier/4.png" alt="5" style="zoom:40%;" />
+<div style="text-align: center">
+<img src="../../images/zapier/4.png" style="zoom:50%" />
+</div>
 
 Test API是用来在第五步测试流程正确与否。
 
@@ -61,7 +65,9 @@ Test API是用来在第五步测试流程正确与否。
 
 Settings用来设置action的一些基本信息，例如名字、描述之类的。Input Designer设置用户的输入参数。API Configuration注册实现aciton的API，如下图所示：
 
-<img src="../../images/zapier/5.png" alt="8" style="zoom: 33%;" />
+<div style="text-align: center">
+<img src="../../images/zapier/5.png" style="zoom:30%" />
+</div>
 
 上图所示API能够在腾讯文档中新建一个文档。
 
@@ -77,11 +83,15 @@ Zapier把自己的服务，叫做Zap。 一个Zap联接来自2个app的service�
 
 选择Trigger APP和Trigger Event，这里选择Google Docs。
 
-<img src="../../images/zapier/6.png" alt="9" style="zoom: 25%;" />
+<div style="text-align: center">
+<img src="../../images/zapier/6.png" style="zoom:30%" />
+</div>
 
 选择Action APP和Action Event。
 
-<img src="../../images/zapier/7.png" alt="10" style="zoom: 25%;" />
+<div style="text-align: center">
+<img src="../../images/zapier/7.png" style="zoom:30%" />
+</div>
 
 Zapier会让用户对Google Docs和Tencent Docs账户访问进行授权，存储用户认证信息。
 
@@ -95,7 +105,9 @@ Webhook不同于RESTful API，**RESTful API**是请求—响应类型的API，�
 
 Zapier基于此采用了事件驱动类型API——Webhook。Webhook是一个接受HTTP POST（或GET、PUT、DELETE）的URL，实现Webhook的提供者只会在有事情发生时向配置的URL发布一条消息；不同于请求—响应API，Webhook可以实时接收更新。
 
-<img src="../../images/zapier/9.png" alt="11" style="zoom:43%;" />
+<div style="text-align: center">
+<img src="../../images/zapier/8.png" style="zoom:40%" />
+</div>
 
 # 总结
 

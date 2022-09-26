@@ -17,7 +17,7 @@ type DiffLayer struct {
 	Destructs []common.Address
 	Accounts  []DiffAccount
 	Storages  []DiffStorage
-	DiffHash common.Hash
+	DiffHash  common.Hash
 }
 
 type DiffCode struct {
@@ -41,10 +41,10 @@ Kafka里存储的diffLayer数据在上述结构上稍作改变，如下所示：
 
 ```go
 type StateDiff struct {
-	Accounts map[common.Address]hexutil.Bytes `json:"accounts"`
+	Accounts  map[common.Address]hexutil.Bytes                 `json:"accounts"`
 	Storage   map[common.Address]map[common.Hash]hexutil.Bytes `json:"storage"`
-	Destructs []common.Address `json:"destructs"`
-	Codes map[common.Hash]hexutil.Bytes `json:"codes"`
+	Destructs []common.Address                                 `json:"destructs"`
+	Codes     map[common.Hash]hexutil.Bytes                    `json:"codes"`
 }
 ```
 
@@ -58,7 +58,7 @@ type StateDiff struct {
 
 ### 方案二
 
-仔细阅读[bsc](https://github.com/bnb-chain/bsc) 源码中diffLayer相关代码发现如果在程序启动时开启 `persistdiff` 会将geth同步数据区块过程中的diffLayer数据保存到本地文件中，而且可以通过 `GetTrustedDiffLayer` 函数将指定的blockNumber对应的diffLayer读出来，基于此我考虑可以给bsc代码增加一个 `JSON RPC API` 实现diffLayer查询功能，`GetTrustedDiffLayer` 函数实现如下所示：
+仔细阅读 [bsc](https://github.com/bnb-chain/bsc) 源码中diffLayer相关代码发现如果在程序启动时开启 `persistdiff` 会将geth同步数据区块过程中的diffLayer数据保存到本地文件中，而且可以通过 `GetTrustedDiffLayer` 函数将指定的blockNumber对应的diffLayer读出来，基于此我考虑可以给bsc代码增加一个 `JSON RPC API` 实现diffLayer查询功能，`GetTrustedDiffLayer` 函数实现如下所示：
 
 ```go
 func (bc *BlockChain) GetTrustedDiffLayer(blockHash common.Hash) *types.DiffLayer {
@@ -113,13 +113,37 @@ curl localhost:9545 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"
 
 通过账户地址便可以从世界状态树中查找到该账户状态（如账户余额），如果是合约地址，还可以继续通过 `storageRoot` 从该账户存储数据树中查找对应的合约信息（如：拍卖合约中的商品信息）。
 
-基于以上原理，结合 `Block Syncer` 中使用的是diffLayer和stateDB，diffLayer数据正是stateDB调用 `func (s *StateDB) Commit(failPostCommitFunc func(), postCommitFuncs ...func() error) (common.Hash, *types.DiffLayer, error)` 产生的；结合 `debug_traceBlockByNumber` 该API的内部实现，底层通过 `StateAtBlock(ctx context.Context, block *types.Block, reexec uint64, base *state.StateDB, checkLive, preferDisk bool) (*state.StateDB, error)` 函数产生指定区块的stateDB，实现架构如下图所示：
+基于以上原理，结合 `Block Syncer` 中使用的是diffLayer和stateDB，diffLayer数据正是stateDB调用
+
+```go
+func (s *StateDB) Commit(failPostCommitFunc func(), postCommitFuncs ...func() error) (common.Hash, *types.DiffLayer, error)
+```
+
+产生的；结合 `debug_traceBlockByNumber` 该API的内部实现，底层通过
+
+```go
+func StateAtBlock(ctx context.Context, block *types.Block, reexec uint64, base *state.StateDB, checkLive, preferDisk bool) (*state.StateDB, error)
+```
+
+函数产生指定区块的stateDB，实现架构如下图所示：
 
 ![2](../../images/diffLayer/2.png)
 
 该方案实现起来难度较低，数据来源为kvrocks，存储为MPT数据，不存在数据同步的问题，因此效率较高，是一个理想的方案。
 
-然而代码完成之后进行实验验证发现了一个问题，怎么都无法产生diffLayer，更进一步阅读源代码发现需要提供对应的 `snaps, *snapshot.Tree`，为其新建一个 `snaps, _ := snapshot.New(eth.chainDb, database.TrieDB(), 1, 128, current.Root(), false, true, false)` 发现依然无法产生，通过打印日志判断是哪里出现了错误 `log.Warn("Loaded snapshot journal", "diskroot", base.root, "diffs", "unmatched")`，我们使用的kvrocks中没有存储对应的snapshot数据，因此这里是无论如何也不会产生diffLayer数据的，该方案宣告失败。
+然而代码完成之后进行实验验证发现了一个问题，怎么都无法产生diffLayer，更进一步阅读源代码发现需要提供对应的 `snaps, *snapshot.Tree`，为其新建一个
+
+```go
+snaps, _ := snapshot.New(eth.chainDb, database.TrieDB(), 1, 128, current.Root(), false, true, false)
+```
+
+发现依然无法产生，通过打印日志判断是哪里出现了错误
+
+```go
+log.Warn("Loaded snapshot journal", "diskroot", base.root, "diffs", "unmatched")
+```
+
+我们使用的kvrocks中没有存储对应的snapshot数据，因此这里是无论如何也不会产生diffLayer数据的，该方案宣告失败。
 
 ### 方案四
 
