@@ -2,8 +2,6 @@
 
 背景：最近一段时间由于项目的需要，接触到了Zapier平台，负责将腾讯文档应用集成到Zapier平台上；Zapier是一个无代码集成平台进行对接，可以与世界上很多SaaS产品，同步数据和执行动作。在集成腾讯文档的过程中，逐渐深入了解了Zapier平台的作用，本篇文章整理了Zapier平台的使用方法和发布流程。
 
-[TOC]
-
 # 一、Zapier是什么？
 
 假设现在有这样一个场景，一个普通用户喜欢用网盘存储文件，又喜欢在线笔记，这个用户会想如何让网盘的文件和在线笔记同步呢？对程序员来说，这不是什么大问题，可以根据网盘和在线笔记各自公开的API接口，编写程序来同步两个应用之间的数据；整个的开发过程，需要三天甚至更长时间，毕竟程序员需要研究API、编写程序、测试、部署等一系列流程。如果这个用户不是程序员呢？只好通过手动的方法来搬移数据。有没有什么更好的方法呢？
@@ -45,14 +43,14 @@ Zapier平台支持集成用户所属公司的App，本节以腾讯文档为例�
 
 腾讯文档采用OAuth2.0的授权码方式进行用户身份验证、获取用户授权，因此在Zapier平台也采用了**OAuth**的认证方式，如下图所示，一共有五个步骤：
 
-<div style="text-align: center">
-<img src="../../images/zapier/3.png" style="zoom:30%" />
+<div align=center>
+<img src="../../images/zapier/3.png" width="400px">
 </div>
 
 前两步可以直接跳过，第三步要首先到腾讯文档开放平台对Zapier进行注册，获得**Client ID**和**Client Secret**；第四步是填写腾讯文档授权接口API，在这里需要填写四个API：Authorization URL、Access Token Request、Refresh Token Request、Test，其流程如下图所示：
 
-<div style="text-align: center">
-<img src="../../images/zapier/4.png" style="zoom:50%" />
+<div align=center>
+<img src="../../images/zapier/4.png" width="200px">
 </div>
 
 Test API是用来在第五步测试流程正确与否。
