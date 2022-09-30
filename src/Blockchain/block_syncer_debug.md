@@ -1,6 +1,6 @@
 # Online debug of Blockchain DiffLayer
 
-背景：团队里的 `Block Syncer` 程序负责将Kafka中的数据，主要是区块数据和对应的状态，写入到 `remoteDB`，remoteDB采用 `kvrocks` 进行数据存储；但是在数据同步的过程中出现了区块追块错误的情况。`Block Syncer` 追块逻辑不是将某个高度的区块数据写入 `remoteDB`，只将 `diffLayer` 数据应用到MPT中完成数据的追块逻辑，因此出现追块错误也就是通过 `diffLayer`计算出的 `rootHash` 与Kafka中某个区块的 `block header` 的 `rootHash` 不一致，无法通过 `Block Syncer` 完成追块逻辑。
+背景：团队里的 `Block Syncer` 程序负责将Kafka中的数据，主要是区块数据和对应的状态，写入到 `remoteDB`，remoteDB采用 `kvrocks` 进行数据存储；但是在数据同步的过程中出现了区块追块错误的情况。`Block Syncer` 追块逻辑不是将某个高度的区块数据写入 `remoteDB`，只将 `diffLayer` 数据应用到MPT中完成数据的追块逻辑，因此出现追块错误也就是通过 `diffLayer`计算出的 `stateRoot` 与Kafka中某个区块的 `block header` 的 `stateRoot` 不一致，无法通过 `Block Syncer` 完成追块逻辑。
 
 ## 解决措施
 
@@ -158,13 +158,21 @@ log.Warn("Loaded snapshot journal", "diskroot", base.root, "diffs", "unmatched")
 考虑从 `debug_traceBlockByNumber` API产生的数据手动生成diffLayer，研究了返回的结果之后发现只能生成accounts相关数据，拿不到destructs和codes相关数据，该方案走不通。
 
 > **result**- Trace Object, which has the following fields:
+>
 > **from** - The address the transaction is sent from
+>
 > **to** - The address the transaction is directed to
+>
 > **gas** - The gas provided for the transaction execution
+>
 > **gasUsed** - The gasPrice used for each paid gas
+>
 > **input** - The data sent along with the transaction
+>
 > **output** - The output data
+>
 > **type** - Type of the transaction
+>
 > **value** - The value transferred in Wei, encoded as a hexadecimal
 
 ### 方案五
@@ -244,4 +252,10 @@ func (s *StateDB) GatherDiffLayer() *StateDiff {
 }
 ```
 
-经过验证可以准确拿到accounts、storage和codes数据，destructs数据存在一点问题。
+增加一个debug RPC API，调用方式如下所示：
+
+```shell
+curl localhost:9545 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_traceBlockByNumber","params":["blockNumber"], "id":0}’
+```
+
+经过验证可以准确拿到accounts、storage和codes数据，destructs数据存在一点问题，该问题不在这里进行阐述。
