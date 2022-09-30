@@ -43,7 +43,7 @@ Kafka里存储的diffLayer数据在上述结构上稍作改变，如下所示：
 type StateDiff struct {
 	Accounts  map[common.Address]hexutil.Bytes                 `json:"accounts"`
 	Storage   map[common.Address]map[common.Hash]hexutil.Bytes `json:"storage"`
-	Destructs []common.Address                                 `json:"destructs"`
+	Destructs map[common.Address]struct{}                      `json:"destructs"`
 	Codes     map[common.Hash]hexutil.Bytes                    `json:"codes"`
 }
 ```
@@ -123,9 +123,17 @@ func (s *StateDB) Commit(failPostCommitFunc func(), postCommitFuncs ...func() er
 
 ```go
 func StateAtBlock(ctx context.Context, block *types.Block, reexec uint64, base *state.StateDB, checkLive, preferDisk bool) (*state.StateDB, error)
+
+// Processor is an interface for processing blocks using a given initial state.
+type Processor interface {
+	// Process processes the state changes according to the Ethereum rules by running
+	// the transaction messages using the statedb and applying any rewards to both
+	// the processor (coinbase) and any included uncles.
+	Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (*state.StateDB, types.Receipts, []*types.Log, uint64, error)
+}
 ```
 
-函数产生指定区块的stateDB，实现架构如下图所示：
+函数产生指定区块的stateDB，指定块的stateDB由Process函数产生；本方案的实现架构如下图所示：
 
 ![2](../../images/diffLayer/2.png)
 
@@ -147,4 +155,93 @@ log.Warn("Loaded snapshot journal", "diskroot", base.root, "diffs", "unmatched")
 
 ### 方案四
 
-考虑是否可以从 `debug_traceBlockByNumber` API产生的transactions数据手动生成diffLayer。
+考虑从 `debug_traceBlockByNumber` API产生的数据手动生成diffLayer，研究了返回的结果之后发现只能生成accounts相关数据，拿不到destructs和codes相关数据，该方案走不通。
+
+> **result**- Trace Object, which has the following fields:
+> **from** - The address the transaction is sent from
+> **to** - The address the transaction is directed to
+> **gas** - The gas provided for the transaction execution
+> **gasUsed** - The gasPrice used for each paid gas
+> **input** - The data sent along with the transaction
+> **output** - The output data
+> **type** - Type of the transaction
+> **value** - The value transferred in Wei, encoded as a hexadecimal
+
+### 方案五
+
+因为目前的方案都行不通，拉了一个会议与Richard、Joey一起讨论了验证工具的问题，在会上Richard给出了一个新方案，在方案四的基础上做改造；虽然我们没有snapshot数据无法生成diffLayer，在traceBlock函数执行的过程中会对每一个transaction执行Finalize，最终的statedb中已经包含了修改的脏数据，可以手动收集、组装成diffLayer。这个思路很棒，工作量很小，可行性很高，代码如下所示：
+
+```go
+func (s *StateDB) GatherDiffLayer() *StateDiff {
+	sd := &StateDiff{}
+	sd.Accounts = map[common.Address]*UsedAccount{}
+	sd.Codes = map[common.Hash]hexutil.Bytes{}
+	sd.Storage = map[common.Address]map[common.Hash]hexutil.Bytes{}
+	sd.Destructs = map[common.Address]struct{}{}
+
+	for addr := range s.stateObjectsDirty {
+		if obj := s.stateObjects[addr]; !obj.deleted {
+			// accounts
+			accountByte := snapshot.SlimAccountRLP(obj.data.Nonce, obj.data.Balance, obj.data.Root, obj.data.CodeHash)
+			var a struct {
+				Nonce    uint64
+				Balance  *big.Int
+				Root     []byte
+				CodeHash []byte
+			}
+			if err := rlp.DecodeBytes(accountByte, &a); err != nil {
+				return nil
+			}
+			b := UsedAccount{
+				Nonce:    a.Nonce,
+				Balance:  a.Balance.Uint64(),
+				Root:     common.BytesToHash(a.Root),
+				CodeHash: common.BytesToHash(a.CodeHash),
+			}
+			sd.Accounts[addr] = &b
+
+			// storage
+			storage := map[string][]byte{}
+			for key, value := range obj.pendingStorage {
+				if value == obj.originStorage[key] {
+					continue
+				}
+				var v []byte
+				if (value != common.Hash{}) {
+					v, _ = rlp.EncodeToBytes(common.TrimLeftZeroes(value[:]))
+				}
+				storage[string(key[:])] = v
+			}
+			innerStorage := map[common.Hash]hexutil.Bytes{}
+			for k, v := range storage {
+				innerStorage[common.BytesToHash([]byte(k))] = v
+			}
+			sd.Storage[addr] = innerStorage
+			if value, _ := sd.Storage[addr]; len(value) == 0 {
+				delete(sd.Storage, addr)
+			}
+
+			// codes
+			if obj.code != nil && obj.dirtyCode {
+				sd.Codes[common.BytesToHash(obj.CodeHash())] = []byte(obj.code)
+			}
+		}
+	}
+
+	// destructs
+	for addr := range s.stateObjectsDirty {
+		if obj := s.stateObjects[addr]; obj.deleted {
+			slice := make([]common.Address, 0)
+			slice = append(slice, obj.Address())
+			sd.Destructs = sliceToMap(slice)
+		}
+	}
+
+	if sd.Accounts == nil && sd.Codes == nil && sd.Destructs == nil && sd.Storage == nil {
+		return nil
+	}
+	return sd
+}
+```
+
+经过验证可以准确拿到accounts、storage和codes数据，destructs数据存在一点问题。
