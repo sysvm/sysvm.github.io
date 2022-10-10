@@ -22,7 +22,7 @@ func Abs(){}
 
 这样的规定对设计、封装良好的包是友好的，但并不是每个人都有这样的能力，另外对于一些特殊的函数，如：`runtime中的memmove函数`，在有些场景下，确实是需要的。
 
-因此Go在程序链接阶段给开发者打开了一扇窗，即可以通过`go:linkname`指令来链接包内的私有函数。
+因此Go在程序链接阶段给开发者打开了一扇窗，即可以通过 `go:linkname`指令来链接包内的私有函数。
 
 ### memmove
 
@@ -43,7 +43,7 @@ memmove作为runtime中的私有函数，用于任意数据之间的内存拷贝
 func memmove(to unsafe.Pointer, from unsafe.Pointer, n uintptr)
 ```
 
-把视角放到`go:linkname`指令上，该指令接受两个参数：
+把视角放到 `go:linkname`指令上，该指令接受两个参数：
 
 * memmove：当前函数名称；
 * runtime.memmove：对应链接的函数的路径，报名+函数名。
@@ -171,7 +171,7 @@ growslice函数接受3个参数：
 
 扩容成功后，返回新的切片。
 
-同样地，使用`go:linkname`来链接runtime中的growslice函数，如下：
+同样地，使用 `go:linkname`来链接runtime中的growslice函数，如下：
 
 ```go
 // runtime.go
@@ -431,7 +431,7 @@ asm2asm会生成两个文件：op.s和op_subr.go：
 * op.s：翻译而来的plan9汇编文件；
 * op_subr.go：函数调用辅助文件。
 
-生成后，op.go中的`__isspace`函数就能顺利的链接上对应的汇编代码，并运行，如下：
+生成后，op.go中的 `__isspace`函数就能顺利的链接上对应的汇编代码，并运行，如下：
 
 ```go
 func Test___isspace(t *testing.T) {
@@ -477,7 +477,7 @@ __isspace顺利运行，并通过了单测。
 
 #### u32toa_small
 
-一个`isspace`函数有些简单，无法完全发挥出汇编的能力，下面我们来看一个稍微复杂一点的例子：将整数转化为字符串。
+一个 `isspace`函数有些简单，无法完全发挥出汇编的能力，下面我们来看一个稍微复杂一点的例子：将整数转化为字符串。
 
 在Go中，整数转化为字符串的方式有多种，比如说：`strconv.Itoa`函数。
 
@@ -528,7 +528,7 @@ int u32toa_small(char*out,uint32_t val) {
 }
 ```
 
-然后在op.go中加入对应的`__u32toa_small`函数：
+然后在op.go中加入对应的 `__u32toa_small`函数：
 
 ```go
 // < 10000
@@ -604,7 +604,7 @@ func Test___u32toa_small(t *testing.T) {
 
 测试成功，`__u32toa_small`函数不仅成功运行，而且通过了测试。
 
-最后，我们来做一个性能跑分看看`__u32toa_small`和`strconv.Itoa`之间的性能差异：
+最后，我们来做一个性能跑分看看 `__u32toa_small`和 `strconv.Itoa`之间的性能差异：
 
 ```go
 func BenchmarkGoConv(b *testing.B) {
@@ -625,7 +625,7 @@ func BenchmarkFastConv(b *testing.B) {
 }
 ```
 
-使用`go test -bench`运行这两个性能测试函数，结果如下：
+使用 `go test -bench`运行这两个性能测试函数，结果如下：
 
 ```bash
 BenchmarkGoConv
@@ -635,7 +635,7 @@ BenchmarkFastConv
 BenchmarkFastConv-121229459249.455 ns/op
 ```
 
-从结果中，可以明显看出`__u32toa_small`优于Itoa，大概有一倍的提升。
+从结果中，可以明显看出 `__u32toa_small`优于Itoa，大概有一倍的提升。
 
 ## 总结
 
@@ -643,7 +643,7 @@ BenchmarkFastConv-121229459249.455 ns/op
 
 Go 的黑魔法一定程度上都使用了unsafe的能力，这也是Go不提倡的，当然使用unsafe其实就和普通的C代码编写一样，因此也无需有太强的心理负担。
 
-实际上，上述的两种方法都被[sonic](https://github.com/bytedance/sonic) 用在了生产环境上，而且带来的很大的性能提升，节约大量资源。
+实际上，上述的两种方法都被[sonic](https://github.com/bytedance/sonic)用在了生产环境上，而且带来的很大的性能提升，节约大量资源。
 
 因此，当Go现有的标准库无法满足你的需求时，不要受到语言本身的限制，而是用虽然少见但有效的方式去解决它。
 
