@@ -1,23 +1,18 @@
-<html>
-  <head>
-    <meta name="baidu-site-verification" content="code-6yO6CSiVhx" />
-  </head>
-  <body>
+### 我的博客
 
-</body>
-</html>
+地址：[https://sysvm.github.io/](https://sysvm.github.io/)
 
-# All Articles
+### 安装说明
 
-* **Golang**
+1. fork库到自己的github
+2. 修改名字为：`username.github.io`
+3. clone库到本地，参考`_posts`中的目录结构自己创建适合自己的文章目录结构
+4. 修改CNAME，或者删掉这个文件，使用默认域名
+5. 修改`_config.yml`配置项
+6. It's done!
 
-  * [The memory leak of online golang code](https://github.com/sysvm/sysvm.github.io/blob/master/src/Golang/memory_leak_online.md)
-  * [Two dark magic tricks of golang](https://github.com/sysvm/sysvm.github.io/blob/master/src/Golang/two_dark_magic_tricks.md)
-* **OpenAPI**
-* **Cloud Native**
-* **Blockchain**
+### 分支说明
 
-  * [Online debug of Blockchain DiffLayer](https://github.com/sysvm/sysvm.github.io/blob/master/src/Blockchain/block_syncer_debug.md)
-* **Other**
-
-  * [Zapier: Overview of the low code platform](https://github.com/sysvm/sysvm.github.io/blob/master/src/Other/zapier.md)
+- 三栏布局（master分支，基于[3-Jekyll](https://github.com/P233/3-Jekyll)）
+- 三栏布局 (bootstrap-based分支，基于Bootstrap)
+- 单栏布局（first-ui分支，基于Bootstrap）
