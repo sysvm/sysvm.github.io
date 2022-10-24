@@ -1,3 +1,8 @@
+# VS Code
 .vscode/
+
+# IDEA
 .idea/
+
+# MacOS
 .DS_Store
