@@ -1,0 +1,88 @@
+baseURL:            "https://sysvm.github.io"
+languageCode:       "zh-Hans"
+title:              "SysVM's Blog"
+paginate:           10
+
+# Site config
+disqusShortname: "only0god"
+
+defaultContentLanguage: zh-hans
+
+languages:
+  zh-hans:
+    contentDir: content/zh-Hans
+  en-us:
+    contentDir: content/en-US
+
+menu:
+  footer:
+    - name: "about"
+      url: "/about"
+      weight: 1
+    - name: "archives"
+      url: "/archives/"
+      weight: 2
+    - name: "categories"
+      url: "/categories/"
+      weight: 3
+    - name: "tags"
+      url: "/tags/"
+      weight: 4
+    - name: "series"
+      url:  "/series/"
+      weight: 5
+    - name: "reports"
+      url: "/reports/"
+      weight: 6
+    - name: "blogroll"
+      url: "/blogroll/"
+      weight: 7
+
+  icon:
+    - name: "rss"
+      url: "/index.xml"
+      weight: 1
+    - name: "github"
+      url: "https://github.com/sysvm"
+      weight: 2
+    - name: "telegram-plane"
+      url: "https://t.me/sysvm"
+      weight: 3
+    - name: "twitter"
+      url: "https://twitter.com/sysvm"
+      weight: 4
+
+markup:
+  highlight:
+    style: friendly
+    guessSyntax: true
+
+# Site.params
+params:
+  smartToc:         true
+  author:           SysVM
+  keywords:
+    - Technology
+    - Code
+    - Program
+    - Linux
+  description:      "An infrastructure engineer, focused on distributed storage system"
+  algolia:
+    vars: ["title", "summary", "date", "publishdate", "expirydate", "permalink"]
+    params: ["categories", "tags"]
+
+taxonomies:
+  tag:              "tags"
+  category:         "categories"
+  series:           "series"
+
+summaryLength: 500
+hasCJKLanguage: true
+outputs:
+  home: ["html", "rss", "algolia"]
+outputFormats:
+  algolia:
+    baseName: "algolia"
+    isPlainText: true
+    mediaType: "application/json"
+    notAlternative: true
