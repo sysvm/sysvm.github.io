@@ -1,6 +1,6 @@
-baseURL:            "https://xuanwo.io"
+baseURL:            "https://sysvm.github.io"
 languageCode:       "zh-Hans"
-title:              "Xuanwo's Blog"
+title:              "SysVM's Blog"
 paginate:           10
 
 # Site config
@@ -43,13 +43,13 @@ menu:
       url: "/index.xml"
       weight: 1
     - name: "github"
-      url: "https://github.com/Xuanwo"
+      url: "https://github.com/sysvm"
       weight: 2
     - name: "telegram-plane"
-      url: "https://t.me/xuanwo_read_later"
+      url: "https://t.me/sysvm"
       weight: 3
     - name: "twitter"
-      url: "https://twitter.com/OnlyXuanwo"
+      url: "https://twitter.com/sysvm"
       weight: 4
 
 markup:
@@ -60,7 +60,7 @@ markup:
 # Site.params
 params:
   smartToc:         true
-  author:           Xuanwo
+  author:           SysVM
   keywords:
     - Technology
     - Code
